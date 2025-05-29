@@ -1,0 +1,7 @@
+[project]
+name = "easybuild-llm"
+authors = [
+    {name = "Kenneth Hoste", email = "kenneth.hoste@ugent.be"},
+]
+version = "0.0.0"
+description = "Integration of EasyBuild with LLMs (coming soon)"
