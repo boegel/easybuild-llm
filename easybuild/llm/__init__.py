@@ -1,3 +1,4 @@
+import importlib.metadata
 import textwrap
 
 # allow importing of easybuild.llm without actually having the 3rd party 'llm' Python pacakge available
@@ -10,7 +11,7 @@ from collections import namedtuple
 from datetime import datetime
 
 from easybuild.base import fancylogger
-from easybuild.tools.build_log import time_str_since
+from easybuild.tools.build_log import EasyBuildError, time_str_since
 from easybuild.tools.config import build_option
 
 
@@ -26,11 +27,45 @@ Do not make suggestions on how to fix the problem, only explain.
 Keep it short and to the point.
 """
 
+LLM_ACTION_EXPLAIN = 'explain'
+LLM_ACTIONS = [LLM_ACTION_EXPLAIN]
+
 
 _log = fancylogger.getLogger('llm', fname=False)
 
 
 LLMResult = namedtuple('LLMResult', ('answer', 'time_spent'))
+
+
+def init_llm_integration():
+    """
+    Initialise integration with LLMs:
+    - verify whether 'llm' Python package is available;
+    - verify configuration settings for LLM integration;
+    """
+    common_err_suffix_req = ", this is required when integration with LLMs is enabled!"
+
+    try:
+        llm_version = importlib.metadata.version('llm')
+    except importlib.metadata.PackageNotFoundError:
+        raise EasyBuildError("'llm' Python package is not available" + common_err_suffix_req)
+    _log.info(f"Found version {llm_version} of 'llm' Python package")
+
+    # on LLM model to use *must* be specified, and it must be a known model (to 'llm' Python package)
+    llm_model = build_option('llm_model')
+    if llm_model:
+        try:
+            model = llm.get_model(llm_model)
+        except llm.UnknownModelError:
+            raise EasyBuildError(f"Unknown LLM model specified: {llm_model}")
+    else:
+        raise EasyBuildError("LLM model to use is not specified" + common_err_suffix_req)
+
+    # specified LLM actions must be known actions
+    llm_actions = build_option('llm_actions')
+    unknown_llm_actions = [x for x in llm_actions or [] if x not in LLM_ACTIONS]
+    if unknown_llm_actions:
+        raise EasyBuildError("Unknown LLM action(s) specified: " + ', '.join(unknown_llm_actions))
 
 
 def explain_failed_shell_cmd(shell_cmd_res):
