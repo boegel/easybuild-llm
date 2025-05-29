@@ -14,7 +14,7 @@ from easybuild.tools.build_log import EasyBuildError
 from easybuild.tools.config import build_option
 
 
-EXPLAIN_FAILED_SHELL_COMMAND_PROMPT = """
+EXPLAIN_FAILED_SHELL_CMD_PROMPT = """
 %(output)s
 
 Explain why the '%(cmd)s' shell command failed with the above output.
@@ -26,8 +26,10 @@ Do not make suggestions on how to fix the problem, only explain.
 Keep it short and to the point.
 """
 
-LLM_ACTION_EXPLAIN = 'explain'
-LLM_ACTIONS = [LLM_ACTION_EXPLAIN]
+LLM_ACTION_EXPLAIN_FAILED_SHELL_CMD = 'explain-failed-shell-cmd'
+LLM_ACTIONS = [
+    LLM_ACTION_EXPLAIN_FAILED_SHELL_CMD,
+]
 
 
 _log = fancylogger.getLogger('llm', fname=False)
@@ -73,8 +75,11 @@ def init_llm_integration():
 
 
 def explain_failed_shell_cmd(shell_cmd_res):
+    """
+    Query LLM to explain failed shell command
+    """
 
-    prompt = EXPLAIN_FAILED_SHELL_COMMAND_PROMPT % {
+    prompt = EXPLAIN_FAILED_SHELL_CMD_PROMPT % {
         'cmd': shell_cmd_res.cmd,
         'exit_code': shell_cmd_res.exit_code,
         'output': shell_cmd_res.output,
