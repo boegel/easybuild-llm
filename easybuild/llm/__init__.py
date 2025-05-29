@@ -34,7 +34,7 @@ LLM_ACTIONS = [LLM_ACTION_EXPLAIN]
 _log = fancylogger.getLogger('llm', fname=False)
 
 
-LLMResult = namedtuple('LLMResult', ('answer', 'time_spent'))
+LLMResult = namedtuple('LLMResult', ('model', 'answer', 'time_spent'))
 
 
 def init_llm_integration():
@@ -98,4 +98,4 @@ def explain_failed_shell_cmd(shell_cmd_res):
 
     time_spent = time_str_since(start_time)
 
-    return LLMResult(answer=answer, time_spent=time_spent)
+    return LLMResult(model=llm_model, answer=answer, time_spent=time_spent)
