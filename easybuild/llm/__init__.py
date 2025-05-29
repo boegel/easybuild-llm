@@ -8,10 +8,9 @@ except ImportError:
     pass
 
 from collections import namedtuple
-from datetime import datetime
 
 from easybuild.base import fancylogger
-from easybuild.tools.build_log import EasyBuildError, time_str_since
+from easybuild.tools.build_log import EasyBuildError
 from easybuild.tools.config import build_option
 
 
@@ -34,7 +33,7 @@ LLM_ACTIONS = [LLM_ACTION_EXPLAIN]
 _log = fancylogger.getLogger('llm', fname=False)
 
 
-LLMResult = namedtuple('LLMResult', ('model', 'answer', 'time_spent'))
+LLMResult = namedtuple('LLMResult', ('model', 'answer', 'duration_ms'))
 
 
 def init_llm_integration():
@@ -75,8 +74,6 @@ def init_llm_integration():
 
 def explain_failed_shell_cmd(shell_cmd_res):
 
-    start_time = datetime.now()
-
     prompt = EXPLAIN_FAILED_SHELL_COMMAND_PROMPT % {
         'cmd': shell_cmd_res.cmd,
         'exit_code': shell_cmd_res.exit_code,
@@ -101,6 +98,4 @@ def explain_failed_shell_cmd(shell_cmd_res):
             answer.append('')
     answer = '\n'.join(answer)
 
-    time_spent = time_str_since(start_time)
-
-    return LLMResult(model=llm_model, answer=answer, time_spent=time_spent)
+    return LLMResult(model=llm_model, answer=answer, duration_ms=response.duration_ms())
