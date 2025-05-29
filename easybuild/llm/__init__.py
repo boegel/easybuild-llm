@@ -61,11 +61,16 @@ def init_llm_integration():
     else:
         raise EasyBuildError("LLM model to use is not specified" + common_err_suffix_req)
 
-    # specified LLM actions must be known actions
+    # specified LLM actions must be known actions, and at least one must be specified
     llm_actions = build_option('llm_actions')
+    known_llm_actions = "known LLMs actions: " + ', '.join(LLM_ACTIONS)
     unknown_llm_actions = [x for x in llm_actions or [] if x not in LLM_ACTIONS]
     if unknown_llm_actions:
-        raise EasyBuildError("Unknown LLM action(s) specified: " + ', '.join(unknown_llm_actions))
+        error_msg = "Unknown LLM action(s) specified: " + ', '.join(unknown_llm_actions) + f" ({known_llm_actions})"
+        raise EasyBuildError(error_msg)
+
+    if not llm_actions:
+        raise EasyBuildError("No LLM actions specified" + common_err_suffix_req + f" ({known_llm_actions})")
 
 
 def explain_failed_shell_cmd(shell_cmd_res):
