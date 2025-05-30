@@ -1,7 +1,28 @@
 [project]
 name = "easybuild-llm"
+version = "0.1.0"
+description = "Integration of EasyBuild with LLMs (coming soon)"
 authors = [
     {name = "Kenneth Hoste", email = "kenneth.hoste@ugent.be"},
 ]
-version = "0.0.0"
-description = "Integration of EasyBuild with LLMs (coming soon)"
+requires-python = ">=3.9"
+dependencies = [
+    "easybuild-framework",
+]
+license = "GPL-2.0-only"
+license-files = ["LICENSE"]
+readme = "README.md"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+[project.urls]
+Repository = "https://github.com/boegel/easybuild-llm"
+Changelog = "https://github.com/boegel/easybuild-llm/blob/master/CHANGELOG.md"
