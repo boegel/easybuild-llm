@@ -55,6 +55,12 @@ pip install https://github.com/easybuilders/easybuild-easyconfigs/archive/develo
 pip install archspec rich
 ```
 
+#### Installing `easybuild-llm`
+
+```
+pip install easybuild-llm
+```
+
 #### Installing `llm` + `llm-ollama`
 
 ```shell
@@ -71,6 +77,7 @@ $ pip list
 easybuild-easyblocks  5.1.1.dev0
 easybuild-easyconfigs 5.1.1.dev0
 easybuild-framework   5.1.1.dev0
+easybuild-llm         0.1.0
 ...
 llm                   0.26
 llm-ollama            0.11
@@ -236,7 +243,7 @@ Large Language Model 'gemma3:1b' explains it as follows:
 
 
 ERROR: Shell command failed!
-    full command              ->  mmake  -j 8
+    full command              ->  make  -j 8
     exit code                 ->  127
     called from               ->  'build_step' function in /Users/example/easybuild-easyblocks/easybuild/easyblocks/generic/configuremake.py (line 382)
     working directory         ->  /tmp/build/example/1.2.3/system-system/example-1.2.3
