@@ -75,7 +75,8 @@ def get_model(model_name=None):
     """
     Get instance of LLM model we can query
     """
-    model_name = os.getenv('EB_LLM_MODEL')
+    env_var = 'EB_LLM_MODEL'
+    model_name = os.getenv(env_var)
 
     # on LLM model to use *must* be specified, and it must be a known model (to 'llm' Python package)
     if model_name:
@@ -85,7 +86,7 @@ def get_model(model_name=None):
         except llm.UnknownModelError:
             raise EasyBuildError(f"Unknown LLM model specified: {model_name}")
     else:
-        raise EasyBuildError("LLM model to use is not specified" + common_err_suffix_req)
+        raise EasyBuildError(f"LLM model to use is not specified, must be specified via ${env_var}")
 
 
 def init_llm_integration():
@@ -94,12 +95,10 @@ def init_llm_integration():
     - verify whether 'llm' Python package is available;
     - verify configuration settings for LLM integration;
     """
-    common_err_suffix_req = ", this is required when integration with LLMs is enabled!"
-
     try:
         llm_version = importlib.metadata.version('llm')
     except importlib.metadata.PackageNotFoundError:
-        raise EasyBuildError("'llm' Python package is not available" + common_err_suffix_req)
+        raise EasyBuildError("'llm' Python package is not available, required because LLM integration is used")
     _log.info(f"Found version {llm_version} of 'llm' Python package")
 
     model = get_model()
