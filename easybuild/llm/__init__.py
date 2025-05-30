@@ -1,4 +1,5 @@
 import importlib.metadata
+import os
 import textwrap
 
 # allow importing of easybuild.llm without actually having the 3rd party 'llm' Python pacakge available
@@ -11,7 +12,7 @@ from collections import namedtuple
 
 from easybuild.base import fancylogger
 from easybuild.tools.build_log import EasyBuildError
-from easybuild.tools.config import build_option
+from easybuild.tools.output import COLOR_CYAN, colorize
 
 
 EXPLAIN_FAILED_SHELL_CMD_PROMPT = """
@@ -35,7 +36,25 @@ LLM_ACTIONS = [
 _log = fancylogger.getLogger('llm', fname=False)
 
 
-LLMResult = namedtuple('LLMResult', ('model', 'answer', 'duration_secs', 'input_tokens', 'output_tokens'))
+LLMConfig = namedtuple('LLMConfig', ('model_name',))
+LLMResult = namedtuple('LLMResult', ('model_name', 'info', 'answer', 'duration_secs', 'input_tokens', 'output_tokens'))
+
+
+def get_model(model_name=None):
+    """
+    Get instance of LLM model we can query
+    """
+    model_name = os.getenv('EB_LLM_MODEL')
+
+    # on LLM model to use *must* be specified, and it must be a known model (to 'llm' Python package)
+    if model_name:
+        try:
+            model = llm.get_model(model_name)
+            return model
+        except llm.UnknownModelError:
+            raise EasyBuildError(f"Unknown LLM model specified: {model_name}")
+    else:
+        raise EasyBuildError("LLM model to use is not specified" + common_err_suffix_req)
 
 
 def init_llm_integration():
@@ -52,26 +71,9 @@ def init_llm_integration():
         raise EasyBuildError("'llm' Python package is not available" + common_err_suffix_req)
     _log.info(f"Found version {llm_version} of 'llm' Python package")
 
-    # on LLM model to use *must* be specified, and it must be a known model (to 'llm' Python package)
-    llm_model = build_option('llm_model')
-    if llm_model:
-        try:
-            model = llm.get_model(llm_model)
-        except llm.UnknownModelError:
-            raise EasyBuildError(f"Unknown LLM model specified: {llm_model}")
-    else:
-        raise EasyBuildError("LLM model to use is not specified" + common_err_suffix_req)
+    model = get_model()
 
-    # specified LLM actions must be known actions, and at least one must be specified
-    llm_actions = build_option('llm_actions')
-    known_llm_actions = "known LLMs actions: " + ', '.join(LLM_ACTIONS)
-    unknown_llm_actions = [x for x in llm_actions or [] if x not in LLM_ACTIONS]
-    if unknown_llm_actions:
-        error_msg = "Unknown LLM action(s) specified: " + ', '.join(unknown_llm_actions) + f" ({known_llm_actions})"
-        raise EasyBuildError(error_msg)
-
-    if not llm_actions:
-        raise EasyBuildError("No LLM actions specified" + common_err_suffix_req + f" ({known_llm_actions})")
+    return LLMConfig(model_name=model.model_id)
 
 
 def explain_failed_shell_cmd(shell_cmd_res):
@@ -86,10 +88,10 @@ def explain_failed_shell_cmd(shell_cmd_res):
         'work_dir': shell_cmd_res.work_dir,
     }
 
-    llm_model = build_option('llm_model')
-    model = llm.get_model(llm_model)
+    model = get_model()
+    model_name = model.model_id
 
-    _log.info(f"Querying LLM {llm_model} using following prompt: {prompt}")
+    _log.info(f"Querying LLM '{model_name}' using following prompt: {prompt}")
     response = model.prompt(prompt)
     explanation = response.text().lstrip()
     _log.info(f"Result from querying LLM: {explanation}")
@@ -108,5 +110,26 @@ def explain_failed_shell_cmd(shell_cmd_res):
     token_usage = response.usage()
     input_tokens, output_tokens = token_usage.input, token_usage.output
 
-    return LLMResult(model=llm_model, answer=answer, duration_secs=duration_secs,
+    info = f"Shell command '{shell_cmd_res.cmd}' failed! (exit code {shell_cmd_res.exit_code})"
+    return LLMResult(model_name=model_name, info=info, answer=answer, duration_secs=duration_secs,
                      input_tokens=input_tokens, output_tokens=output_tokens)
+
+
+def format_llm_result(llm_result):
+    """
+    Format LLM result for printing
+    """
+    lines = [
+        '',
+        llm_result.info,
+        f"Large Language Model '{llm_result.model_name}' explains it as follows:",
+        '',
+    ]
+    lines.extend('> ' + x for x in llm_result.answer.split('\n'))
+    lines.extend([
+        '',
+        "*** NOTE: the text above was produced by an AI model, it may not be fully accurate! ***",
+        f"(time spent querying LLM: {llm_result.duration_secs} sec "
+        f"| tokens used: input={llm_result.input_tokens}, output={llm_result.output_tokens})",
+    ])
+    return colorize('\n'.join(lines), COLOR_CYAN)
