@@ -77,7 +77,7 @@ $ pip list
 easybuild-easyblocks  5.1.1.dev0
 easybuild-easyconfigs 5.1.1.dev0
 easybuild-framework   5.1.1.dev0
-easybuild-llm         0.1.0
+easybuild-llm         0.1.1
 ...
 llm                   0.26
 llm-ollama            0.11
