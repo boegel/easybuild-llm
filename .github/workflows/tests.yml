@@ -1,0 +1,36 @@
+# documentation: https://help.github.com/en/articles/workflow-syntax-for-github-actions
+name: Run test suite
+on: [push, pull_request]
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
+concurrency:
+  group: ${{format('{0}:{1}:{2}', github.repository, github.ref, github.workflow)}}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: 'ubuntu-24.04'
+    strategy:
+      matrix:
+        python: ['3.9', '3.10', '3.11', '3.12', '3.13']
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # 4.2.2
+
+    - name: set up Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      with:
+        python-version: ${{matrix.python}}
+        architecture: x64
+
+    - name: install Python packages
+      run: |
+        pip install https://github.com/easybuilders/easybuild-framework/archive/develop.tar.gz
+        pip install llm
+        pip install pytest
+
+    - name: run tests
+      run: |
+        pytest tests.py
