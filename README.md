@@ -151,6 +151,9 @@ To download addition models, you can use [`ollama pull`](https://github.com/olla
 
 The list of models supported by Ollama is available [here](https://ollama.com/search).
 
+Note that Ollama will download models to `~/.ollama/models`, so you may want to symlink that path to another location to
+avoid that your home directory fills up.
+
 ### Configuring `easybuild-llm`
 
 To specify which LLM should be used in EasyBuild, you must define the `$EB_LLM_MODEL` environment variable.
